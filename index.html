@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Adobe Flash Memory - Simulação</title>
+<style>
+body {
+  margin:0;
+  background:black;
+  color:white;
+  font-family:Arial, sans-serif;
+}
+#topbar {
+  width:100%;
+  height:40px;
+  background:#222;
+  position:fixed;
+  top:0;
+  left:0;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  padding-right:20px;
+  border-bottom:2px solid #ff0000;
+  box-sizing:border-box;
+}
+#topbar span { margin-right:10px; }
+#topbar button {
+  padding:5px 10px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+  background:#ff6600;
+  color:white;
+  margin-left:5px;
+}
+#container {
+  width:900px;
+  margin:80px auto 50px auto;
+  padding:20px;
+  background:#222;
+  border:5px solid #ff0000;
+  border-radius:10px;
+  position:relative;
+  text-align:center;
+}
+h1 { color: yellow; animation: blink 1s infinite; }
+@keyframes blink {0%,50%,100%{color:yellow;}25%,75%{color:red;}}
+.botao {
+  display:inline-block;
+  margin:15px;
+  padding:15px 30px;
+  background:#ff6600;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  border-radius:10px;
+  transition:.3s;
+}
+.botao:hover { background:#ffaa00; transform:scale(1.1);}
+.warning { color:red; font-weight:bold; margin-top:20px; animation: warningBlink 1s infinite;}
+@keyframes warningBlink {0%,50%,100%{opacity:1;}25%,75%{opacity:0;}}
+#loginBox, #flawsBox, #minigameBox, #naoAbraBox { display:none; margin-top:30px; }
+input { padding:8px; margin:5px; border-radius:5px; border:none; }
+canvas { background:#333; margin-top:20px; border:2px solid #ff6600; }
+#captchaBox {
+  display:none;
+  margin-top:20px;
+  width:150px;
+  height:50px;
+  background:white;
+  border-radius:5px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  color:lime;
+  font-size:24px;
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <span id="welcomeText"></span>
+  <button id="loginBtn" onclick="showLoginBox()">Fazer login</button>
+  <button id="naoAbraBtn" onclick="showNaoAbraLogin()">Não Abra</button>
+  <button id="logoutBtn" onclick="logout()" style="display:none;">Sair</button>
+</div>
+
+<div id="container">
+<h1>Adobe Flash Memory</h1>
+<div class="warning">⚠️ ATENÇÃO: Este conteúdo pode ser inseguro! ⚠️</div>
+
+<div class="botao" onclick="showLoginBox()">Executar mesmo assim</div>
+<div class="botao" onclick="showFlaws()">Ver falhas históricas do Flash</div>
+<div class="botao" onclick="showMinigames()">Mini-jogos</div>
+
+<!-- LOGIN PADRÃO -->
+<div id="loginBox">
+  <h2>Login Simulado</h2>
+  <input type="text" id="username" placeholder="Username"><br>
+  <input type="password" id="password" placeholder="Password"><br>
+  <button onclick="checkLogin()">Entrar</button>
+  <p id="loginMsg"></p>
+  <div id="captchaBox">✔</div>
+</div>
+
+<!-- LOGIN "NÃO ABRA" -->
+<div id="naoAbraBox">
+  <h2>Login Exclusivo</h2>
+  <input type="text" id="naoUser" placeholder="Username"><br>
+  <input type="password" id="naoPass" placeholder="Password"><br>
+  <button onclick="checkNaoAbraLogin()">Entrar</button>
+  <p id="naoMsg"></p>
+</div>
+
+<!-- FALHAS HISTÓRICAS -->
+<div id="flawsBox">
+  <h2>Falhas históricas simuladas</h2>
+  <p>Login bypass: digitar <code>' ou 1=1</code> desbloqueia qualquer usuário (simulado)</p>
+  <p>Buffer overflow: animação piscando infinito 😵</p>
+  <p>Crash: clicar rapidamente nos botões causa alerta de “Trava do Flash”</p>
+</div>
+
+<!-- MINI JOGOS -->
+<div id="minigameBox">
+  <h2>Mini-jogos</h2>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <p>Pegue o quadrado vermelho clicando nele!</p>
+</div>
+
+</div>
+
+<script>
+function showLoginBox(){
+  document.getElementById('loginBox').style.display = 'block';
+  document.getElementById('naoAbraBox').style.display = 'none';
+  document.getElementById('flawsBox').style.display = 'none';
+  document.getElementById('minigameBox').style.display = 'none';
+  document.getElementById('loginMsg').textContent = "";
+  document.getElementById('captchaBox').style.display = 'none';
+}
+
+function showNaoAbraLogin(){
+  document.getElementById('naoAbraBox').style.display = 'block';
+  document.getElementById('loginBox').style.display = 'none';
+  document.getElementById('flawsBox').style.display = 'none';
+  document.getElementById('minigameBox').style.display = 'none';
+  document.getElementById('naoMsg').textContent = "";
+}
+
+function showFlaws(){
+  document.getElementById('flawsBox').style.display = 'block';
+  document.getElementById('loginBox').style.display = 'none';
+  document.getElementById('minigameBox').style.display = 'none';
+  document.getElementById('naoAbraBox').style.display = 'none';
+}
+
+function showMinigames(){
+  document.getElementById('minigameBox').style.display = 'block';
+  document.getElementById('loginBox').style.display = 'none';
+  document.getElementById('flawsBox').style.display = 'none';
+  document.getElementById('naoAbraBox').style.display = 'none';
+  startMiniGame();
+}
+
+// LOGIN PADRÃO
+function checkLogin(){
+  const user = document.getElementById('username').value;
+  const pass = document.getElementById('password').value;
+  const msg = document.getElementById('loginMsg');
+  const captchaBox = document.getElementById('captchaBox');
+  const welcomeText = document.getElementById('welcomeText');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  const users = {
+    "teddy": "teddy2",
+    "carlos": "ca",
+    "Tusk_Labagel": "pishpish",
+    "chatgptmaisfake": "ia",
+    "miau": "5467",
+    "dino": "bv2009",
+    "TOPSECRET": "FBI"
+  };
+
+  if(pass === "' ou 1=1"){ 
+    captchaBox.style.display = "flex"; 
+    msg.style.color = "lime";
+    msg.textContent = "Login simulado bem-sucedido!";
+    welcomeText.textContent = `Bem-vindo, ${user}!`;
+    loginBtn.style.display = 'none';
+    document.getElementById('naoAbraBtn').style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    document.getElementById('loginBox').style.display = 'none';
+  } else if(users[user] && users[user] === pass){
+    captchaBox.style.display = "flex"; 
+    msg.style.color = "lime";
+    msg.textContent = "Login bem-sucedido!";
+    welcomeText.textContent = `Bem-vindo, ${user}!`;
+    loginBtn.style.display = 'none';
+    document.getElementById('naoAbraBtn').style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    document.getElementById('loginBox').style.display = 'none';
+  } else {
+    captchaBox.style.display = "none";
+    msg.style.color = "red";
+    msg.textContent = "Senha ou usuário incorreto (simulado).";
+  }
+}
+
+// LOGIN "NÃO ABRA"
+function checkNaoAbraLogin(){
+  const user = document.getElementById('naoUser').value;
+  const pass = document.getElementById('naoPass').value;
+  const msg = document.getElementById('naoMsg');
+  const welcomeText = document.getElementById('welcomeText');
+  const loginBtn = document.getElementById('loginBtn');
+  const naoBtn = document.getElementById('naoAbraBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  if(user === "TOPSECRET" && pass === "FBI"){
+    msg.textContent = "";
+    welcomeText.textContent = `Bem-vindo, ${user}!`;
+    loginBtn.style.display = 'none';
+    naoBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    document.getElementById('naoAbraBox').style.display = 'none';
+  } else {
+    msg.style.color = "red";
+    msg.textContent = "Senha ou usuário incorreto!";
+  }
+}
+
+function logout(){
+  document.getElementById('welcomeText').textContent = '';
+  document.getElementById('loginBtn').style.display = 'inline-block';
+  document.getElementById('naoAbraBtn').style.display = 'inline-block';
+  document.getElementById('logoutBtn').style.display = 'none';
+}
+
+// MINI-JOGO SIMPLES
+let canvas, ctx, square;
+function startMiniGame(){
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
+  square = { x: Math.random()*360, y: Math.random()*360, size:40 };
+  canvas.addEventListener('click', hitSquare);
+  drawSquare();
+}
+
+function drawSquare(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = 'red';
+  ctx.fillRect(square.x, square.y, square.size, square.size);
+}
+
+function hitSquare(e){
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  if(mx > square.x && mx < square.x+square.size && my > square.y && my < square.y+square.size){
+    alert('Você pegou o quadrado! 🎉');
+    square.x = Math.random()*360;
+    square.y = Math.random()*360;
+    drawSquare();
+  }
+}
+</script>
+</body>
+</html>
